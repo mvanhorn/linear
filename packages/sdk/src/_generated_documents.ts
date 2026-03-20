@@ -680,6 +680,8 @@ export type AiConversation = Node & {
   evalLogId?: Maybe<Scalars["String"]>;
   /** The unique identifier of the entity. */
   id: Scalars["ID"];
+  /** The initial source of the conversation. */
+  initialSource: AiConversationInitialSource;
   /** The iteration ID of the conversation in agentic workflow. */
   iterationId?: Maybe<Scalars["String"]>;
   /** The parts of the conversation. */
@@ -954,6 +956,16 @@ export type AiConversationGetSlackConversationHistoryToolCall = AiConversationBa
   /** The result of the tool call. */
   rawResult?: Maybe<Scalars["JSON"]>;
 };
+
+/** The initial source of an AI conversation. */
+export enum AiConversationInitialSource {
+  Comment = "comment",
+  DirectChat = "directChat",
+  MicrosoftTeams = "microsoftTeams",
+  PullRequestComment = "pullRequestComment",
+  Slack = "slack",
+  Workflow = "workflow",
+}
 
 export type AiConversationInvokeMcpToolToolCall = AiConversationBaseToolCall & {
   __typename?: "AiConversationInvokeMcpToolToolCall";
@@ -9917,6 +9929,13 @@ export enum IssueSharedAccessDisallowedField {
   TeamId = "teamId",
 }
 
+/** Policy controlling whether and by whom issues in a team can be shared with non-team-members. */
+export enum IssueSharingPolicy {
+  AdminsOnly = "adminsOnly",
+  AllMembers = "allMembers",
+  Disabled = "disabled",
+}
+
 /** Payload for issue SLA webhook events. */
 export type IssueSlaWebhookPayload = {
   __typename?: "IssueSlaWebhookPayload";
@@ -14369,6 +14388,8 @@ export type OpsgenieInput = {
 /** An organization. Organizations are root-level objects that contain user accounts and teams. */
 export type Organization = Node & {
   __typename?: "Organization";
+  /** [INTERNAL] Whether the organization has enabled agent automation. */
+  agentAutomationEnabled: Scalars["Boolean"];
   /** [INTERNAL] Whether the organization has enabled the AI add-on (which at this point only includes triage suggestions). */
   aiAddonEnabled: Scalars["Boolean"];
   /** Whether the organization has enabled AI discussion summaries for issues. */
@@ -14455,6 +14476,8 @@ export type Organization = Node & {
   labels: IssueLabelConnection;
   /** [Internal] Whether the organization has enabled Linear Agent. */
   linearAgentEnabled: Scalars["Boolean"];
+  /** [Internal] Settings for Linear Agent features. */
+  linearAgentSettings: Scalars["JSONObject"];
   /** The organization's logo URL. */
   logoUrl?: Maybe<Scalars["String"]>;
   /** The organization's name. */
@@ -14865,6 +14888,11 @@ export type OrganizationIpRestrictionInput = {
   type: Scalars["String"];
 };
 
+export type OrganizationLinearAgentSettingsInput = {
+  /** [Internal] Whether the organization has enabled web search for Linear Agent. */
+  webSearchEnabled?: InputMaybe<Scalars["Boolean"]>;
+};
+
 export type OrganizationMeta = {
   __typename?: "OrganizationMeta";
   /** Allowed authentication providers, empty array means all are allowed. */
@@ -14923,6 +14951,8 @@ export type OrganizationStartTrialPayload = {
 };
 
 export type OrganizationUpdateInput = {
+  /** [INTERNAL] Whether the organization has enabled agent automation. */
+  agentAutomationEnabled?: InputMaybe<Scalars["Boolean"]>;
   /** [INTERNAL] Whether the organization has enabled the AI add-on. */
   aiAddonEnabled?: InputMaybe<Scalars["Boolean"]>;
   /** Whether the organization has enabled AI discussion summaries for issues. */
@@ -14977,6 +15007,8 @@ export type OrganizationUpdateInput = {
   ipRestrictions?: InputMaybe<Array<OrganizationIpRestrictionInput>>;
   /** [Internal] Whether the organization has enabled Linear Agent. */
   linearAgentEnabled?: InputMaybe<Scalars["Boolean"]>;
+  /** [Internal] Settings for Linear Agent features. */
+  linearAgentSettings?: InputMaybe<OrganizationLinearAgentSettingsInput>;
   /** The logo of the organization. */
   logoUrl?: InputMaybe<Scalars["String"]>;
   /** The name of the organization. */
@@ -17770,6 +17802,8 @@ export type PullRequest = Node & {
   __typename?: "PullRequest";
   /** The time at which the entity was archived. Null if the entity has not been archived. */
   archivedAt?: Maybe<Scalars["DateTime"]>;
+  /** The base SHA of the pull request. */
+  baseSha?: Maybe<Scalars["String"]>;
   /** [Internal] The checks associated with the pull request. */
   checks: Array<PullRequestCheck>;
   /** [ALPHA] The commits associated with the pull request. */
@@ -17778,6 +17812,8 @@ export type PullRequest = Node & {
   createdAt: Scalars["DateTime"];
   /** [Internal] The user who created the pull request. */
   creator?: Maybe<User>;
+  /** The head SHA of the pull request. */
+  headSha?: Maybe<Scalars["String"]>;
   /** The unique identifier of the entity. */
   id: Scalars["ID"];
   /** The merge commit created when the PR was merged. */
@@ -17814,6 +17850,8 @@ export type PullRequestCheck = {
   isRequired?: Maybe<Scalars["Boolean"]>;
   /** The name of the check. */
   name: Scalars["String"];
+  /** How the check should be opened in the client. */
+  presentation?: Maybe<PullRequestCheckPresentation>;
   /** The date/time at which when the check was started. */
   startedAt?: Maybe<Scalars["DateTime"]>;
   /** The status of the check. */
@@ -17823,6 +17861,14 @@ export type PullRequestCheck = {
   /** The name of the workflow that triggered the check. */
   workflowName?: Maybe<Scalars["String"]>;
 };
+
+/** [ALPHA] How a pull request check should be opened in the client. */
+export enum PullRequestCheckPresentation {
+  ExternalOnly = "externalOnly",
+  JobLogs = "jobLogs",
+  Markdown = "markdown",
+  RunLogs = "runLogs",
+}
 
 /** [ALPHA] A pull request commit. */
 export type PullRequestCommit = {
@@ -19388,6 +19434,10 @@ export type Release = Node & {
   documents: DocumentConnection;
   /** The unique identifier of the entity. */
   id: Scalars["ID"];
+  /** [ALPHA] Number of issues associated with the release. */
+  issueCount: Scalars["Int"];
+  /** [ALPHA] Issues associated with the release. */
+  issues: IssueConnection;
   /** [Internal] Links associated with the release. */
   links: EntityExternalLinkConnection;
   /** The name of the release. */
@@ -19424,6 +19474,22 @@ export type ReleaseDocumentsArgs = {
   after?: InputMaybe<Scalars["String"]>;
   before?: InputMaybe<Scalars["String"]>;
   filter?: InputMaybe<DocumentFilter>;
+  first?: InputMaybe<Scalars["Int"]>;
+  includeArchived?: InputMaybe<Scalars["Boolean"]>;
+  last?: InputMaybe<Scalars["Int"]>;
+  orderBy?: InputMaybe<PaginationOrderBy>;
+};
+
+/** [Internal] A release. */
+export type ReleaseIssueCountArgs = {
+  includeArchived?: InputMaybe<Scalars["Boolean"]>;
+};
+
+/** [Internal] A release. */
+export type ReleaseIssuesArgs = {
+  after?: InputMaybe<Scalars["String"]>;
+  before?: InputMaybe<Scalars["String"]>;
+  filter?: InputMaybe<IssueFilter>;
   first?: InputMaybe<Scalars["Int"]>;
   includeArchived?: InputMaybe<Scalars["Boolean"]>;
   last?: InputMaybe<Scalars["Int"]>;
@@ -21246,6 +21312,8 @@ export type TeamCreateInput = {
   issueEstimationExtended?: InputMaybe<Scalars["Boolean"]>;
   /** The issue estimation type to use. Must be one of "notUsed", "exponential", "fibonacci", "linear", "tShirt". */
   issueEstimationType?: InputMaybe<Scalars["String"]>;
+  /** The policy controlling whether and by whom issues in the team can be shared with non-team-members. */
+  issueSharingPolicy?: InputMaybe<IssueSharingPolicy>;
   /** The key of the team. If not given, the key will be generated based on the name of the team. */
   key?: InputMaybe<Scalars["String"]>;
   /** The workflow state into which issues are moved when they are marked as a duplicate of another issue. */
@@ -21532,6 +21600,8 @@ export type TeamUpdateInput = {
   issueEstimationExtended?: InputMaybe<Scalars["Boolean"]>;
   /** The issue estimation type to use. Must be one of "notUsed", "exponential", "fibonacci", "linear", "tShirt". */
   issueEstimationType?: InputMaybe<Scalars["String"]>;
+  /** The policy controlling whether and by whom issues in the team can be shared with non-team-members. */
+  issueSharingPolicy?: InputMaybe<IssueSharingPolicy>;
   /** Whether new users should join this team by default. Mutation restricted to workspace admins or owners! */
   joinByDefault?: InputMaybe<Scalars["Boolean"]>;
   /** The key of the team. */
@@ -22290,6 +22360,7 @@ export type UserFilter = {
 
 /** The types of flags that the user can have. */
 export enum UserFlagType {
+  AgentExamplesDismissed = "agentExamplesDismissed",
   All = "all",
   AnalyticsWelcomeDismissed = "analyticsWelcomeDismissed",
   CanPlaySnake = "canPlaySnake",
@@ -23027,8 +23098,12 @@ export type ViewPreferencesValues = {
   releasePipelineFieldLatestRelease?: Maybe<Scalars["Boolean"]>;
   /** Whether to show the releases field for release pipelines. */
   releasePipelineFieldReleases?: Maybe<Scalars["Boolean"]>;
+  /** Whether to show the teams field for release pipelines. */
+  releasePipelineFieldTeams?: Maybe<Scalars["Boolean"]>;
   /** Whether to show the type field for release pipelines. */
   releasePipelineFieldType?: Maybe<Scalars["Boolean"]>;
+  /** The release pipeline grouping. */
+  releasePipelineGrouping?: Maybe<Scalars["String"]>;
   /** The release pipelines view ordering. */
   releasePipelinesViewOrdering?: Maybe<Scalars["String"]>;
   /** Whether to show the review avatar field. */
@@ -23045,10 +23120,16 @@ export type ViewPreferencesValues = {
   reviewGrouping?: Maybe<Scalars["String"]>;
   /** The review view ordering. */
   reviewViewOrdering?: Maybe<Scalars["String"]>;
+  /** Whether to show the completion field for scheduled pipeline releases. */
+  scheduledPipelineReleaseFieldCompletion?: Maybe<Scalars["Boolean"]>;
+  /** Whether to show the description field for scheduled pipeline releases. */
+  scheduledPipelineReleaseFieldDescription?: Maybe<Scalars["Boolean"]>;
   /** Whether to show the release date field for scheduled pipeline releases. */
   scheduledPipelineReleaseFieldReleaseDate?: Maybe<Scalars["Boolean"]>;
-  /** Whether to show the stage field for scheduled pipeline releases. */
-  scheduledPipelineReleaseFieldStage?: Maybe<Scalars["Boolean"]>;
+  /** Whether to show the version field for scheduled pipeline releases. */
+  scheduledPipelineReleaseFieldVersion?: Maybe<Scalars["Boolean"]>;
+  /** The scheduled pipeline releases view grouping. */
+  scheduledPipelineReleasesViewGrouping?: Maybe<Scalars["String"]>;
   /** The scheduled pipeline releases view ordering. */
   scheduledPipelineReleasesViewOrdering?: Maybe<Scalars["String"]>;
   /** The search result type filter. */
@@ -24479,9 +24560,11 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
         | "projectLayout"
         | "projectViewOrdering"
         | "projectSubGrouping"
+        | "releasePipelineGrouping"
         | "releasePipelinesViewOrdering"
         | "reviewGrouping"
         | "reviewViewOrdering"
+        | "scheduledPipelineReleasesViewGrouping"
         | "scheduledPipelineReleasesViewOrdering"
         | "searchResultType"
         | "searchViewOrdering"
@@ -24521,6 +24604,7 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
         | "showSupervisedIssues"
         | "fieldSla"
         | "fieldSentryIssues"
+        | "scheduledPipelineReleaseFieldCompletion"
         | "customViewFieldDateCreated"
         | "customViewFieldOwner"
         | "customViewFieldDateUpdated"
@@ -24539,6 +24623,7 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
         | "dashboardFieldDateCreated"
         | "dashboardFieldOwner"
         | "dashboardFieldDateUpdated"
+        | "scheduledPipelineReleaseFieldDescription"
         | "fieldDueDate"
         | "initiativeFieldHealth"
         | "initiativeFieldActivity"
@@ -24620,7 +24705,6 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
         | "reviewFieldIdentifier"
         | "reviewFieldPreviewLinks"
         | "reviewFieldRepository"
-        | "scheduledPipelineReleaseFieldStage"
         | "teamFieldDateCreated"
         | "teamFieldCycle"
         | "teamFieldIdentifier"
@@ -24629,8 +24713,10 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
         | "teamFieldOwner"
         | "teamFieldProjects"
         | "teamFieldDateUpdated"
+        | "releasePipelineFieldTeams"
         | "fieldTimeInCurrentStatus"
         | "releasePipelineFieldType"
+        | "scheduledPipelineReleaseFieldVersion"
         | "showTriageIssues"
         | "showUnreadItemsFirst"
         | "timelineChronologyShowWeekNumbers"
@@ -24693,9 +24779,11 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "projectLayout"
             | "projectViewOrdering"
             | "projectSubGrouping"
+            | "releasePipelineGrouping"
             | "releasePipelinesViewOrdering"
             | "reviewGrouping"
             | "reviewViewOrdering"
+            | "scheduledPipelineReleasesViewGrouping"
             | "scheduledPipelineReleasesViewOrdering"
             | "searchResultType"
             | "searchViewOrdering"
@@ -24735,6 +24823,7 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "showSupervisedIssues"
             | "fieldSla"
             | "fieldSentryIssues"
+            | "scheduledPipelineReleaseFieldCompletion"
             | "customViewFieldDateCreated"
             | "customViewFieldOwner"
             | "customViewFieldDateUpdated"
@@ -24753,6 +24842,7 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "dashboardFieldDateCreated"
             | "dashboardFieldOwner"
             | "dashboardFieldDateUpdated"
+            | "scheduledPipelineReleaseFieldDescription"
             | "fieldDueDate"
             | "initiativeFieldHealth"
             | "initiativeFieldActivity"
@@ -24834,7 +24924,6 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "reviewFieldIdentifier"
             | "reviewFieldPreviewLinks"
             | "reviewFieldRepository"
-            | "scheduledPipelineReleaseFieldStage"
             | "teamFieldDateCreated"
             | "teamFieldCycle"
             | "teamFieldIdentifier"
@@ -24843,8 +24932,10 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "teamFieldOwner"
             | "teamFieldProjects"
             | "teamFieldDateUpdated"
+            | "releasePipelineFieldTeams"
             | "fieldTimeInCurrentStatus"
             | "releasePipelineFieldType"
+            | "scheduledPipelineReleaseFieldVersion"
             | "showTriageIssues"
             | "showUnreadItemsFirst"
             | "timelineChronologyShowWeekNumbers"
@@ -24908,9 +24999,11 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "projectLayout"
             | "projectViewOrdering"
             | "projectSubGrouping"
+            | "releasePipelineGrouping"
             | "releasePipelinesViewOrdering"
             | "reviewGrouping"
             | "reviewViewOrdering"
+            | "scheduledPipelineReleasesViewGrouping"
             | "scheduledPipelineReleasesViewOrdering"
             | "searchResultType"
             | "searchViewOrdering"
@@ -24950,6 +25043,7 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "showSupervisedIssues"
             | "fieldSla"
             | "fieldSentryIssues"
+            | "scheduledPipelineReleaseFieldCompletion"
             | "customViewFieldDateCreated"
             | "customViewFieldOwner"
             | "customViewFieldDateUpdated"
@@ -24968,6 +25062,7 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "dashboardFieldDateCreated"
             | "dashboardFieldOwner"
             | "dashboardFieldDateUpdated"
+            | "scheduledPipelineReleaseFieldDescription"
             | "fieldDueDate"
             | "initiativeFieldHealth"
             | "initiativeFieldActivity"
@@ -25049,7 +25144,6 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "reviewFieldIdentifier"
             | "reviewFieldPreviewLinks"
             | "reviewFieldRepository"
-            | "scheduledPipelineReleaseFieldStage"
             | "teamFieldDateCreated"
             | "teamFieldCycle"
             | "teamFieldIdentifier"
@@ -25058,8 +25152,10 @@ export type CustomViewFragment = { __typename: "CustomView" } & Pick<
             | "teamFieldOwner"
             | "teamFieldProjects"
             | "teamFieldDateUpdated"
+            | "releasePipelineFieldTeams"
             | "fieldTimeInCurrentStatus"
             | "releasePipelineFieldType"
+            | "scheduledPipelineReleaseFieldVersion"
             | "showTriageIssues"
             | "showUnreadItemsFirst"
             | "timelineChronologyShowWeekNumbers"
@@ -31528,9 +31624,11 @@ export type ViewPreferencesFragment = { __typename: "ViewPreferences" } & Pick<
       | "projectLayout"
       | "projectViewOrdering"
       | "projectSubGrouping"
+      | "releasePipelineGrouping"
       | "releasePipelinesViewOrdering"
       | "reviewGrouping"
       | "reviewViewOrdering"
+      | "scheduledPipelineReleasesViewGrouping"
       | "scheduledPipelineReleasesViewOrdering"
       | "searchResultType"
       | "searchViewOrdering"
@@ -31570,6 +31668,7 @@ export type ViewPreferencesFragment = { __typename: "ViewPreferences" } & Pick<
       | "showSupervisedIssues"
       | "fieldSla"
       | "fieldSentryIssues"
+      | "scheduledPipelineReleaseFieldCompletion"
       | "customViewFieldDateCreated"
       | "customViewFieldOwner"
       | "customViewFieldDateUpdated"
@@ -31588,6 +31687,7 @@ export type ViewPreferencesFragment = { __typename: "ViewPreferences" } & Pick<
       | "dashboardFieldDateCreated"
       | "dashboardFieldOwner"
       | "dashboardFieldDateUpdated"
+      | "scheduledPipelineReleaseFieldDescription"
       | "fieldDueDate"
       | "initiativeFieldHealth"
       | "initiativeFieldActivity"
@@ -31669,7 +31769,6 @@ export type ViewPreferencesFragment = { __typename: "ViewPreferences" } & Pick<
       | "reviewFieldIdentifier"
       | "reviewFieldPreviewLinks"
       | "reviewFieldRepository"
-      | "scheduledPipelineReleaseFieldStage"
       | "teamFieldDateCreated"
       | "teamFieldCycle"
       | "teamFieldIdentifier"
@@ -31678,8 +31777,10 @@ export type ViewPreferencesFragment = { __typename: "ViewPreferences" } & Pick<
       | "teamFieldOwner"
       | "teamFieldProjects"
       | "teamFieldDateUpdated"
+      | "releasePipelineFieldTeams"
       | "fieldTimeInCurrentStatus"
       | "releasePipelineFieldType"
+      | "scheduledPipelineReleaseFieldVersion"
       | "showTriageIssues"
       | "showUnreadItemsFirst"
       | "timelineChronologyShowWeekNumbers"
@@ -33315,9 +33416,11 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
             | "projectLayout"
             | "projectViewOrdering"
             | "projectSubGrouping"
+            | "releasePipelineGrouping"
             | "releasePipelinesViewOrdering"
             | "reviewGrouping"
             | "reviewViewOrdering"
+            | "scheduledPipelineReleasesViewGrouping"
             | "scheduledPipelineReleasesViewOrdering"
             | "searchResultType"
             | "searchViewOrdering"
@@ -33357,6 +33460,7 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
             | "showSupervisedIssues"
             | "fieldSla"
             | "fieldSentryIssues"
+            | "scheduledPipelineReleaseFieldCompletion"
             | "customViewFieldDateCreated"
             | "customViewFieldOwner"
             | "customViewFieldDateUpdated"
@@ -33375,6 +33479,7 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
             | "dashboardFieldDateCreated"
             | "dashboardFieldOwner"
             | "dashboardFieldDateUpdated"
+            | "scheduledPipelineReleaseFieldDescription"
             | "fieldDueDate"
             | "initiativeFieldHealth"
             | "initiativeFieldActivity"
@@ -33456,7 +33561,6 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
             | "reviewFieldIdentifier"
             | "reviewFieldPreviewLinks"
             | "reviewFieldRepository"
-            | "scheduledPipelineReleaseFieldStage"
             | "teamFieldDateCreated"
             | "teamFieldCycle"
             | "teamFieldIdentifier"
@@ -33465,8 +33569,10 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
             | "teamFieldOwner"
             | "teamFieldProjects"
             | "teamFieldDateUpdated"
+            | "releasePipelineFieldTeams"
             | "fieldTimeInCurrentStatus"
             | "releasePipelineFieldType"
+            | "scheduledPipelineReleaseFieldVersion"
             | "showTriageIssues"
             | "showUnreadItemsFirst"
             | "timelineChronologyShowWeekNumbers"
@@ -33529,9 +33635,11 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "projectLayout"
                 | "projectViewOrdering"
                 | "projectSubGrouping"
+                | "releasePipelineGrouping"
                 | "releasePipelinesViewOrdering"
                 | "reviewGrouping"
                 | "reviewViewOrdering"
+                | "scheduledPipelineReleasesViewGrouping"
                 | "scheduledPipelineReleasesViewOrdering"
                 | "searchResultType"
                 | "searchViewOrdering"
@@ -33571,6 +33679,7 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "showSupervisedIssues"
                 | "fieldSla"
                 | "fieldSentryIssues"
+                | "scheduledPipelineReleaseFieldCompletion"
                 | "customViewFieldDateCreated"
                 | "customViewFieldOwner"
                 | "customViewFieldDateUpdated"
@@ -33589,6 +33698,7 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "dashboardFieldDateCreated"
                 | "dashboardFieldOwner"
                 | "dashboardFieldDateUpdated"
+                | "scheduledPipelineReleaseFieldDescription"
                 | "fieldDueDate"
                 | "initiativeFieldHealth"
                 | "initiativeFieldActivity"
@@ -33670,7 +33780,6 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "reviewFieldIdentifier"
                 | "reviewFieldPreviewLinks"
                 | "reviewFieldRepository"
-                | "scheduledPipelineReleaseFieldStage"
                 | "teamFieldDateCreated"
                 | "teamFieldCycle"
                 | "teamFieldIdentifier"
@@ -33679,8 +33788,10 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "teamFieldOwner"
                 | "teamFieldProjects"
                 | "teamFieldDateUpdated"
+                | "releasePipelineFieldTeams"
                 | "fieldTimeInCurrentStatus"
                 | "releasePipelineFieldType"
+                | "scheduledPipelineReleaseFieldVersion"
                 | "showTriageIssues"
                 | "showUnreadItemsFirst"
                 | "timelineChronologyShowWeekNumbers"
@@ -33744,9 +33855,11 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "projectLayout"
                 | "projectViewOrdering"
                 | "projectSubGrouping"
+                | "releasePipelineGrouping"
                 | "releasePipelinesViewOrdering"
                 | "reviewGrouping"
                 | "reviewViewOrdering"
+                | "scheduledPipelineReleasesViewGrouping"
                 | "scheduledPipelineReleasesViewOrdering"
                 | "searchResultType"
                 | "searchViewOrdering"
@@ -33786,6 +33899,7 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "showSupervisedIssues"
                 | "fieldSla"
                 | "fieldSentryIssues"
+                | "scheduledPipelineReleaseFieldCompletion"
                 | "customViewFieldDateCreated"
                 | "customViewFieldOwner"
                 | "customViewFieldDateUpdated"
@@ -33804,6 +33918,7 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "dashboardFieldDateCreated"
                 | "dashboardFieldOwner"
                 | "dashboardFieldDateUpdated"
+                | "scheduledPipelineReleaseFieldDescription"
                 | "fieldDueDate"
                 | "initiativeFieldHealth"
                 | "initiativeFieldActivity"
@@ -33885,7 +34000,6 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "reviewFieldIdentifier"
                 | "reviewFieldPreviewLinks"
                 | "reviewFieldRepository"
-                | "scheduledPipelineReleaseFieldStage"
                 | "teamFieldDateCreated"
                 | "teamFieldCycle"
                 | "teamFieldIdentifier"
@@ -33894,8 +34008,10 @@ export type CustomViewConnectionFragment = { __typename: "CustomViewConnection" 
                 | "teamFieldOwner"
                 | "teamFieldProjects"
                 | "teamFieldDateUpdated"
+                | "releasePipelineFieldTeams"
                 | "fieldTimeInCurrentStatus"
                 | "releasePipelineFieldType"
+                | "scheduledPipelineReleaseFieldVersion"
                 | "showTriageIssues"
                 | "showUnreadItemsFirst"
                 | "timelineChronologyShowWeekNumbers"
@@ -38987,9 +39103,11 @@ export type ViewPreferencesPayloadFragment = { __typename: "ViewPreferencesPaylo
           | "projectLayout"
           | "projectViewOrdering"
           | "projectSubGrouping"
+          | "releasePipelineGrouping"
           | "releasePipelinesViewOrdering"
           | "reviewGrouping"
           | "reviewViewOrdering"
+          | "scheduledPipelineReleasesViewGrouping"
           | "scheduledPipelineReleasesViewOrdering"
           | "searchResultType"
           | "searchViewOrdering"
@@ -39029,6 +39147,7 @@ export type ViewPreferencesPayloadFragment = { __typename: "ViewPreferencesPaylo
           | "showSupervisedIssues"
           | "fieldSla"
           | "fieldSentryIssues"
+          | "scheduledPipelineReleaseFieldCompletion"
           | "customViewFieldDateCreated"
           | "customViewFieldOwner"
           | "customViewFieldDateUpdated"
@@ -39047,6 +39166,7 @@ export type ViewPreferencesPayloadFragment = { __typename: "ViewPreferencesPaylo
           | "dashboardFieldDateCreated"
           | "dashboardFieldOwner"
           | "dashboardFieldDateUpdated"
+          | "scheduledPipelineReleaseFieldDescription"
           | "fieldDueDate"
           | "initiativeFieldHealth"
           | "initiativeFieldActivity"
@@ -39128,7 +39248,6 @@ export type ViewPreferencesPayloadFragment = { __typename: "ViewPreferencesPaylo
           | "reviewFieldIdentifier"
           | "reviewFieldPreviewLinks"
           | "reviewFieldRepository"
-          | "scheduledPipelineReleaseFieldStage"
           | "teamFieldDateCreated"
           | "teamFieldCycle"
           | "teamFieldIdentifier"
@@ -39137,8 +39256,10 @@ export type ViewPreferencesPayloadFragment = { __typename: "ViewPreferencesPaylo
           | "teamFieldOwner"
           | "teamFieldProjects"
           | "teamFieldDateUpdated"
+          | "releasePipelineFieldTeams"
           | "fieldTimeInCurrentStatus"
           | "releasePipelineFieldType"
+          | "scheduledPipelineReleaseFieldVersion"
           | "showTriageIssues"
           | "showUnreadItemsFirst"
           | "timelineChronologyShowWeekNumbers"
@@ -39198,9 +39319,11 @@ export type ViewPreferencesValuesFragment = { __typename: "ViewPreferencesValues
   | "projectLayout"
   | "projectViewOrdering"
   | "projectSubGrouping"
+  | "releasePipelineGrouping"
   | "releasePipelinesViewOrdering"
   | "reviewGrouping"
   | "reviewViewOrdering"
+  | "scheduledPipelineReleasesViewGrouping"
   | "scheduledPipelineReleasesViewOrdering"
   | "searchResultType"
   | "searchViewOrdering"
@@ -39240,6 +39363,7 @@ export type ViewPreferencesValuesFragment = { __typename: "ViewPreferencesValues
   | "showSupervisedIssues"
   | "fieldSla"
   | "fieldSentryIssues"
+  | "scheduledPipelineReleaseFieldCompletion"
   | "customViewFieldDateCreated"
   | "customViewFieldOwner"
   | "customViewFieldDateUpdated"
@@ -39258,6 +39382,7 @@ export type ViewPreferencesValuesFragment = { __typename: "ViewPreferencesValues
   | "dashboardFieldDateCreated"
   | "dashboardFieldOwner"
   | "dashboardFieldDateUpdated"
+  | "scheduledPipelineReleaseFieldDescription"
   | "fieldDueDate"
   | "initiativeFieldHealth"
   | "initiativeFieldActivity"
@@ -39339,7 +39464,6 @@ export type ViewPreferencesValuesFragment = { __typename: "ViewPreferencesValues
   | "reviewFieldIdentifier"
   | "reviewFieldPreviewLinks"
   | "reviewFieldRepository"
-  | "scheduledPipelineReleaseFieldStage"
   | "teamFieldDateCreated"
   | "teamFieldCycle"
   | "teamFieldIdentifier"
@@ -39348,8 +39472,10 @@ export type ViewPreferencesValuesFragment = { __typename: "ViewPreferencesValues
   | "teamFieldOwner"
   | "teamFieldProjects"
   | "teamFieldDateUpdated"
+  | "releasePipelineFieldTeams"
   | "fieldTimeInCurrentStatus"
   | "releasePipelineFieldType"
+  | "scheduledPipelineReleaseFieldVersion"
   | "showTriageIssues"
   | "showUnreadItemsFirst"
   | "timelineChronologyShowWeekNumbers"
@@ -41955,9 +42081,11 @@ export type CustomViewQuery = { __typename?: "Query" } & {
           | "projectLayout"
           | "projectViewOrdering"
           | "projectSubGrouping"
+          | "releasePipelineGrouping"
           | "releasePipelinesViewOrdering"
           | "reviewGrouping"
           | "reviewViewOrdering"
+          | "scheduledPipelineReleasesViewGrouping"
           | "scheduledPipelineReleasesViewOrdering"
           | "searchResultType"
           | "searchViewOrdering"
@@ -41997,6 +42125,7 @@ export type CustomViewQuery = { __typename?: "Query" } & {
           | "showSupervisedIssues"
           | "fieldSla"
           | "fieldSentryIssues"
+          | "scheduledPipelineReleaseFieldCompletion"
           | "customViewFieldDateCreated"
           | "customViewFieldOwner"
           | "customViewFieldDateUpdated"
@@ -42015,6 +42144,7 @@ export type CustomViewQuery = { __typename?: "Query" } & {
           | "dashboardFieldDateCreated"
           | "dashboardFieldOwner"
           | "dashboardFieldDateUpdated"
+          | "scheduledPipelineReleaseFieldDescription"
           | "fieldDueDate"
           | "initiativeFieldHealth"
           | "initiativeFieldActivity"
@@ -42096,7 +42226,6 @@ export type CustomViewQuery = { __typename?: "Query" } & {
           | "reviewFieldIdentifier"
           | "reviewFieldPreviewLinks"
           | "reviewFieldRepository"
-          | "scheduledPipelineReleaseFieldStage"
           | "teamFieldDateCreated"
           | "teamFieldCycle"
           | "teamFieldIdentifier"
@@ -42105,8 +42234,10 @@ export type CustomViewQuery = { __typename?: "Query" } & {
           | "teamFieldOwner"
           | "teamFieldProjects"
           | "teamFieldDateUpdated"
+          | "releasePipelineFieldTeams"
           | "fieldTimeInCurrentStatus"
           | "releasePipelineFieldType"
+          | "scheduledPipelineReleaseFieldVersion"
           | "showTriageIssues"
           | "showUnreadItemsFirst"
           | "timelineChronologyShowWeekNumbers"
@@ -42169,9 +42300,11 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "projectLayout"
               | "projectViewOrdering"
               | "projectSubGrouping"
+              | "releasePipelineGrouping"
               | "releasePipelinesViewOrdering"
               | "reviewGrouping"
               | "reviewViewOrdering"
+              | "scheduledPipelineReleasesViewGrouping"
               | "scheduledPipelineReleasesViewOrdering"
               | "searchResultType"
               | "searchViewOrdering"
@@ -42211,6 +42344,7 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "showSupervisedIssues"
               | "fieldSla"
               | "fieldSentryIssues"
+              | "scheduledPipelineReleaseFieldCompletion"
               | "customViewFieldDateCreated"
               | "customViewFieldOwner"
               | "customViewFieldDateUpdated"
@@ -42229,6 +42363,7 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "dashboardFieldDateCreated"
               | "dashboardFieldOwner"
               | "dashboardFieldDateUpdated"
+              | "scheduledPipelineReleaseFieldDescription"
               | "fieldDueDate"
               | "initiativeFieldHealth"
               | "initiativeFieldActivity"
@@ -42310,7 +42445,6 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "reviewFieldIdentifier"
               | "reviewFieldPreviewLinks"
               | "reviewFieldRepository"
-              | "scheduledPipelineReleaseFieldStage"
               | "teamFieldDateCreated"
               | "teamFieldCycle"
               | "teamFieldIdentifier"
@@ -42319,8 +42453,10 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "teamFieldOwner"
               | "teamFieldProjects"
               | "teamFieldDateUpdated"
+              | "releasePipelineFieldTeams"
               | "fieldTimeInCurrentStatus"
               | "releasePipelineFieldType"
+              | "scheduledPipelineReleaseFieldVersion"
               | "showTriageIssues"
               | "showUnreadItemsFirst"
               | "timelineChronologyShowWeekNumbers"
@@ -42384,9 +42520,11 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "projectLayout"
               | "projectViewOrdering"
               | "projectSubGrouping"
+              | "releasePipelineGrouping"
               | "releasePipelinesViewOrdering"
               | "reviewGrouping"
               | "reviewViewOrdering"
+              | "scheduledPipelineReleasesViewGrouping"
               | "scheduledPipelineReleasesViewOrdering"
               | "searchResultType"
               | "searchViewOrdering"
@@ -42426,6 +42564,7 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "showSupervisedIssues"
               | "fieldSla"
               | "fieldSentryIssues"
+              | "scheduledPipelineReleaseFieldCompletion"
               | "customViewFieldDateCreated"
               | "customViewFieldOwner"
               | "customViewFieldDateUpdated"
@@ -42444,6 +42583,7 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "dashboardFieldDateCreated"
               | "dashboardFieldOwner"
               | "dashboardFieldDateUpdated"
+              | "scheduledPipelineReleaseFieldDescription"
               | "fieldDueDate"
               | "initiativeFieldHealth"
               | "initiativeFieldActivity"
@@ -42525,7 +42665,6 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "reviewFieldIdentifier"
               | "reviewFieldPreviewLinks"
               | "reviewFieldRepository"
-              | "scheduledPipelineReleaseFieldStage"
               | "teamFieldDateCreated"
               | "teamFieldCycle"
               | "teamFieldIdentifier"
@@ -42534,8 +42673,10 @@ export type CustomViewQuery = { __typename?: "Query" } & {
               | "teamFieldOwner"
               | "teamFieldProjects"
               | "teamFieldDateUpdated"
+              | "releasePipelineFieldTeams"
               | "fieldTimeInCurrentStatus"
               | "releasePipelineFieldType"
+              | "scheduledPipelineReleaseFieldVersion"
               | "showTriageIssues"
               | "showUnreadItemsFirst"
               | "timelineChronologyShowWeekNumbers"
@@ -42859,9 +43000,11 @@ export type CustomView_OrganizationViewPreferencesQuery = { __typename?: "Query"
             | "projectLayout"
             | "projectViewOrdering"
             | "projectSubGrouping"
+            | "releasePipelineGrouping"
             | "releasePipelinesViewOrdering"
             | "reviewGrouping"
             | "reviewViewOrdering"
+            | "scheduledPipelineReleasesViewGrouping"
             | "scheduledPipelineReleasesViewOrdering"
             | "searchResultType"
             | "searchViewOrdering"
@@ -42901,6 +43044,7 @@ export type CustomView_OrganizationViewPreferencesQuery = { __typename?: "Query"
             | "showSupervisedIssues"
             | "fieldSla"
             | "fieldSentryIssues"
+            | "scheduledPipelineReleaseFieldCompletion"
             | "customViewFieldDateCreated"
             | "customViewFieldOwner"
             | "customViewFieldDateUpdated"
@@ -42919,6 +43063,7 @@ export type CustomView_OrganizationViewPreferencesQuery = { __typename?: "Query"
             | "dashboardFieldDateCreated"
             | "dashboardFieldOwner"
             | "dashboardFieldDateUpdated"
+            | "scheduledPipelineReleaseFieldDescription"
             | "fieldDueDate"
             | "initiativeFieldHealth"
             | "initiativeFieldActivity"
@@ -43000,7 +43145,6 @@ export type CustomView_OrganizationViewPreferencesQuery = { __typename?: "Query"
             | "reviewFieldIdentifier"
             | "reviewFieldPreviewLinks"
             | "reviewFieldRepository"
-            | "scheduledPipelineReleaseFieldStage"
             | "teamFieldDateCreated"
             | "teamFieldCycle"
             | "teamFieldIdentifier"
@@ -43009,8 +43153,10 @@ export type CustomView_OrganizationViewPreferencesQuery = { __typename?: "Query"
             | "teamFieldOwner"
             | "teamFieldProjects"
             | "teamFieldDateUpdated"
+            | "releasePipelineFieldTeams"
             | "fieldTimeInCurrentStatus"
             | "releasePipelineFieldType"
+            | "scheduledPipelineReleaseFieldVersion"
             | "showTriageIssues"
             | "showUnreadItemsFirst"
             | "timelineChronologyShowWeekNumbers"
@@ -43080,9 +43226,11 @@ export type CustomView_OrganizationViewPreferences_PreferencesQuery = { __typena
           | "projectLayout"
           | "projectViewOrdering"
           | "projectSubGrouping"
+          | "releasePipelineGrouping"
           | "releasePipelinesViewOrdering"
           | "reviewGrouping"
           | "reviewViewOrdering"
+          | "scheduledPipelineReleasesViewGrouping"
           | "scheduledPipelineReleasesViewOrdering"
           | "searchResultType"
           | "searchViewOrdering"
@@ -43122,6 +43270,7 @@ export type CustomView_OrganizationViewPreferences_PreferencesQuery = { __typena
           | "showSupervisedIssues"
           | "fieldSla"
           | "fieldSentryIssues"
+          | "scheduledPipelineReleaseFieldCompletion"
           | "customViewFieldDateCreated"
           | "customViewFieldOwner"
           | "customViewFieldDateUpdated"
@@ -43140,6 +43289,7 @@ export type CustomView_OrganizationViewPreferences_PreferencesQuery = { __typena
           | "dashboardFieldDateCreated"
           | "dashboardFieldOwner"
           | "dashboardFieldDateUpdated"
+          | "scheduledPipelineReleaseFieldDescription"
           | "fieldDueDate"
           | "initiativeFieldHealth"
           | "initiativeFieldActivity"
@@ -43221,7 +43371,6 @@ export type CustomView_OrganizationViewPreferences_PreferencesQuery = { __typena
           | "reviewFieldIdentifier"
           | "reviewFieldPreviewLinks"
           | "reviewFieldRepository"
-          | "scheduledPipelineReleaseFieldStage"
           | "teamFieldDateCreated"
           | "teamFieldCycle"
           | "teamFieldIdentifier"
@@ -43230,8 +43379,10 @@ export type CustomView_OrganizationViewPreferences_PreferencesQuery = { __typena
           | "teamFieldOwner"
           | "teamFieldProjects"
           | "teamFieldDateUpdated"
+          | "releasePipelineFieldTeams"
           | "fieldTimeInCurrentStatus"
           | "releasePipelineFieldType"
+          | "scheduledPipelineReleaseFieldVersion"
           | "showTriageIssues"
           | "showUnreadItemsFirst"
           | "timelineChronologyShowWeekNumbers"
@@ -43430,9 +43581,11 @@ export type CustomView_UserViewPreferencesQuery = { __typename?: "Query" } & {
             | "projectLayout"
             | "projectViewOrdering"
             | "projectSubGrouping"
+            | "releasePipelineGrouping"
             | "releasePipelinesViewOrdering"
             | "reviewGrouping"
             | "reviewViewOrdering"
+            | "scheduledPipelineReleasesViewGrouping"
             | "scheduledPipelineReleasesViewOrdering"
             | "searchResultType"
             | "searchViewOrdering"
@@ -43472,6 +43625,7 @@ export type CustomView_UserViewPreferencesQuery = { __typename?: "Query" } & {
             | "showSupervisedIssues"
             | "fieldSla"
             | "fieldSentryIssues"
+            | "scheduledPipelineReleaseFieldCompletion"
             | "customViewFieldDateCreated"
             | "customViewFieldOwner"
             | "customViewFieldDateUpdated"
@@ -43490,6 +43644,7 @@ export type CustomView_UserViewPreferencesQuery = { __typename?: "Query" } & {
             | "dashboardFieldDateCreated"
             | "dashboardFieldOwner"
             | "dashboardFieldDateUpdated"
+            | "scheduledPipelineReleaseFieldDescription"
             | "fieldDueDate"
             | "initiativeFieldHealth"
             | "initiativeFieldActivity"
@@ -43571,7 +43726,6 @@ export type CustomView_UserViewPreferencesQuery = { __typename?: "Query" } & {
             | "reviewFieldIdentifier"
             | "reviewFieldPreviewLinks"
             | "reviewFieldRepository"
-            | "scheduledPipelineReleaseFieldStage"
             | "teamFieldDateCreated"
             | "teamFieldCycle"
             | "teamFieldIdentifier"
@@ -43580,8 +43734,10 @@ export type CustomView_UserViewPreferencesQuery = { __typename?: "Query" } & {
             | "teamFieldOwner"
             | "teamFieldProjects"
             | "teamFieldDateUpdated"
+            | "releasePipelineFieldTeams"
             | "fieldTimeInCurrentStatus"
             | "releasePipelineFieldType"
+            | "scheduledPipelineReleaseFieldVersion"
             | "showTriageIssues"
             | "showUnreadItemsFirst"
             | "timelineChronologyShowWeekNumbers"
@@ -43651,9 +43807,11 @@ export type CustomView_UserViewPreferences_PreferencesQuery = { __typename?: "Qu
           | "projectLayout"
           | "projectViewOrdering"
           | "projectSubGrouping"
+          | "releasePipelineGrouping"
           | "releasePipelinesViewOrdering"
           | "reviewGrouping"
           | "reviewViewOrdering"
+          | "scheduledPipelineReleasesViewGrouping"
           | "scheduledPipelineReleasesViewOrdering"
           | "searchResultType"
           | "searchViewOrdering"
@@ -43693,6 +43851,7 @@ export type CustomView_UserViewPreferences_PreferencesQuery = { __typename?: "Qu
           | "showSupervisedIssues"
           | "fieldSla"
           | "fieldSentryIssues"
+          | "scheduledPipelineReleaseFieldCompletion"
           | "customViewFieldDateCreated"
           | "customViewFieldOwner"
           | "customViewFieldDateUpdated"
@@ -43711,6 +43870,7 @@ export type CustomView_UserViewPreferences_PreferencesQuery = { __typename?: "Qu
           | "dashboardFieldDateCreated"
           | "dashboardFieldOwner"
           | "dashboardFieldDateUpdated"
+          | "scheduledPipelineReleaseFieldDescription"
           | "fieldDueDate"
           | "initiativeFieldHealth"
           | "initiativeFieldActivity"
@@ -43792,7 +43952,6 @@ export type CustomView_UserViewPreferences_PreferencesQuery = { __typename?: "Qu
           | "reviewFieldIdentifier"
           | "reviewFieldPreviewLinks"
           | "reviewFieldRepository"
-          | "scheduledPipelineReleaseFieldStage"
           | "teamFieldDateCreated"
           | "teamFieldCycle"
           | "teamFieldIdentifier"
@@ -43801,8 +43960,10 @@ export type CustomView_UserViewPreferences_PreferencesQuery = { __typename?: "Qu
           | "teamFieldOwner"
           | "teamFieldProjects"
           | "teamFieldDateUpdated"
+          | "releasePipelineFieldTeams"
           | "fieldTimeInCurrentStatus"
           | "releasePipelineFieldType"
+          | "scheduledPipelineReleaseFieldVersion"
           | "showTriageIssues"
           | "showUnreadItemsFirst"
           | "timelineChronologyShowWeekNumbers"
@@ -43871,9 +44032,11 @@ export type CustomView_ViewPreferencesValuesQuery = { __typename?: "Query" } & {
         | "projectLayout"
         | "projectViewOrdering"
         | "projectSubGrouping"
+        | "releasePipelineGrouping"
         | "releasePipelinesViewOrdering"
         | "reviewGrouping"
         | "reviewViewOrdering"
+        | "scheduledPipelineReleasesViewGrouping"
         | "scheduledPipelineReleasesViewOrdering"
         | "searchResultType"
         | "searchViewOrdering"
@@ -43913,6 +44076,7 @@ export type CustomView_ViewPreferencesValuesQuery = { __typename?: "Query" } & {
         | "showSupervisedIssues"
         | "fieldSla"
         | "fieldSentryIssues"
+        | "scheduledPipelineReleaseFieldCompletion"
         | "customViewFieldDateCreated"
         | "customViewFieldOwner"
         | "customViewFieldDateUpdated"
@@ -43931,6 +44095,7 @@ export type CustomView_ViewPreferencesValuesQuery = { __typename?: "Query" } & {
         | "dashboardFieldDateCreated"
         | "dashboardFieldOwner"
         | "dashboardFieldDateUpdated"
+        | "scheduledPipelineReleaseFieldDescription"
         | "fieldDueDate"
         | "initiativeFieldHealth"
         | "initiativeFieldActivity"
@@ -44012,7 +44177,6 @@ export type CustomView_ViewPreferencesValuesQuery = { __typename?: "Query" } & {
         | "reviewFieldIdentifier"
         | "reviewFieldPreviewLinks"
         | "reviewFieldRepository"
-        | "scheduledPipelineReleaseFieldStage"
         | "teamFieldDateCreated"
         | "teamFieldCycle"
         | "teamFieldIdentifier"
@@ -44021,8 +44185,10 @@ export type CustomView_ViewPreferencesValuesQuery = { __typename?: "Query" } & {
         | "teamFieldOwner"
         | "teamFieldProjects"
         | "teamFieldDateUpdated"
+        | "releasePipelineFieldTeams"
         | "fieldTimeInCurrentStatus"
         | "releasePipelineFieldType"
+        | "scheduledPipelineReleaseFieldVersion"
         | "showTriageIssues"
         | "showUnreadItemsFirst"
         | "timelineChronologyShowWeekNumbers"
@@ -44128,9 +44294,11 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
               | "projectLayout"
               | "projectViewOrdering"
               | "projectSubGrouping"
+              | "releasePipelineGrouping"
               | "releasePipelinesViewOrdering"
               | "reviewGrouping"
               | "reviewViewOrdering"
+              | "scheduledPipelineReleasesViewGrouping"
               | "scheduledPipelineReleasesViewOrdering"
               | "searchResultType"
               | "searchViewOrdering"
@@ -44170,6 +44338,7 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
               | "showSupervisedIssues"
               | "fieldSla"
               | "fieldSentryIssues"
+              | "scheduledPipelineReleaseFieldCompletion"
               | "customViewFieldDateCreated"
               | "customViewFieldOwner"
               | "customViewFieldDateUpdated"
@@ -44188,6 +44357,7 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
               | "dashboardFieldDateCreated"
               | "dashboardFieldOwner"
               | "dashboardFieldDateUpdated"
+              | "scheduledPipelineReleaseFieldDescription"
               | "fieldDueDate"
               | "initiativeFieldHealth"
               | "initiativeFieldActivity"
@@ -44269,7 +44439,6 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
               | "reviewFieldIdentifier"
               | "reviewFieldPreviewLinks"
               | "reviewFieldRepository"
-              | "scheduledPipelineReleaseFieldStage"
               | "teamFieldDateCreated"
               | "teamFieldCycle"
               | "teamFieldIdentifier"
@@ -44278,8 +44447,10 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
               | "teamFieldOwner"
               | "teamFieldProjects"
               | "teamFieldDateUpdated"
+              | "releasePipelineFieldTeams"
               | "fieldTimeInCurrentStatus"
               | "releasePipelineFieldType"
+              | "scheduledPipelineReleaseFieldVersion"
               | "showTriageIssues"
               | "showUnreadItemsFirst"
               | "timelineChronologyShowWeekNumbers"
@@ -44342,9 +44513,11 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "projectLayout"
                   | "projectViewOrdering"
                   | "projectSubGrouping"
+                  | "releasePipelineGrouping"
                   | "releasePipelinesViewOrdering"
                   | "reviewGrouping"
                   | "reviewViewOrdering"
+                  | "scheduledPipelineReleasesViewGrouping"
                   | "scheduledPipelineReleasesViewOrdering"
                   | "searchResultType"
                   | "searchViewOrdering"
@@ -44384,6 +44557,7 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "showSupervisedIssues"
                   | "fieldSla"
                   | "fieldSentryIssues"
+                  | "scheduledPipelineReleaseFieldCompletion"
                   | "customViewFieldDateCreated"
                   | "customViewFieldOwner"
                   | "customViewFieldDateUpdated"
@@ -44402,6 +44576,7 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "dashboardFieldDateCreated"
                   | "dashboardFieldOwner"
                   | "dashboardFieldDateUpdated"
+                  | "scheduledPipelineReleaseFieldDescription"
                   | "fieldDueDate"
                   | "initiativeFieldHealth"
                   | "initiativeFieldActivity"
@@ -44483,7 +44658,6 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "reviewFieldIdentifier"
                   | "reviewFieldPreviewLinks"
                   | "reviewFieldRepository"
-                  | "scheduledPipelineReleaseFieldStage"
                   | "teamFieldDateCreated"
                   | "teamFieldCycle"
                   | "teamFieldIdentifier"
@@ -44492,8 +44666,10 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "teamFieldOwner"
                   | "teamFieldProjects"
                   | "teamFieldDateUpdated"
+                  | "releasePipelineFieldTeams"
                   | "fieldTimeInCurrentStatus"
                   | "releasePipelineFieldType"
+                  | "scheduledPipelineReleaseFieldVersion"
                   | "showTriageIssues"
                   | "showUnreadItemsFirst"
                   | "timelineChronologyShowWeekNumbers"
@@ -44557,9 +44733,11 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "projectLayout"
                   | "projectViewOrdering"
                   | "projectSubGrouping"
+                  | "releasePipelineGrouping"
                   | "releasePipelinesViewOrdering"
                   | "reviewGrouping"
                   | "reviewViewOrdering"
+                  | "scheduledPipelineReleasesViewGrouping"
                   | "scheduledPipelineReleasesViewOrdering"
                   | "searchResultType"
                   | "searchViewOrdering"
@@ -44599,6 +44777,7 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "showSupervisedIssues"
                   | "fieldSla"
                   | "fieldSentryIssues"
+                  | "scheduledPipelineReleaseFieldCompletion"
                   | "customViewFieldDateCreated"
                   | "customViewFieldOwner"
                   | "customViewFieldDateUpdated"
@@ -44617,6 +44796,7 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "dashboardFieldDateCreated"
                   | "dashboardFieldOwner"
                   | "dashboardFieldDateUpdated"
+                  | "scheduledPipelineReleaseFieldDescription"
                   | "fieldDueDate"
                   | "initiativeFieldHealth"
                   | "initiativeFieldActivity"
@@ -44698,7 +44878,6 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "reviewFieldIdentifier"
                   | "reviewFieldPreviewLinks"
                   | "reviewFieldRepository"
-                  | "scheduledPipelineReleaseFieldStage"
                   | "teamFieldDateCreated"
                   | "teamFieldCycle"
                   | "teamFieldIdentifier"
@@ -44707,8 +44886,10 @@ export type CustomViewsQuery = { __typename?: "Query" } & {
                   | "teamFieldOwner"
                   | "teamFieldProjects"
                   | "teamFieldDateUpdated"
+                  | "releasePipelineFieldTeams"
                   | "fieldTimeInCurrentStatus"
                   | "releasePipelineFieldType"
+                  | "scheduledPipelineReleaseFieldVersion"
                   | "showTriageIssues"
                   | "showUnreadItemsFirst"
                   | "timelineChronologyShowWeekNumbers"
@@ -66303,9 +66484,11 @@ export type CreateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "projectLayout"
             | "projectViewOrdering"
             | "projectSubGrouping"
+            | "releasePipelineGrouping"
             | "releasePipelinesViewOrdering"
             | "reviewGrouping"
             | "reviewViewOrdering"
+            | "scheduledPipelineReleasesViewGrouping"
             | "scheduledPipelineReleasesViewOrdering"
             | "searchResultType"
             | "searchViewOrdering"
@@ -66345,6 +66528,7 @@ export type CreateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "showSupervisedIssues"
             | "fieldSla"
             | "fieldSentryIssues"
+            | "scheduledPipelineReleaseFieldCompletion"
             | "customViewFieldDateCreated"
             | "customViewFieldOwner"
             | "customViewFieldDateUpdated"
@@ -66363,6 +66547,7 @@ export type CreateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "dashboardFieldDateCreated"
             | "dashboardFieldOwner"
             | "dashboardFieldDateUpdated"
+            | "scheduledPipelineReleaseFieldDescription"
             | "fieldDueDate"
             | "initiativeFieldHealth"
             | "initiativeFieldActivity"
@@ -66444,7 +66629,6 @@ export type CreateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "reviewFieldIdentifier"
             | "reviewFieldPreviewLinks"
             | "reviewFieldRepository"
-            | "scheduledPipelineReleaseFieldStage"
             | "teamFieldDateCreated"
             | "teamFieldCycle"
             | "teamFieldIdentifier"
@@ -66453,8 +66637,10 @@ export type CreateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "teamFieldOwner"
             | "teamFieldProjects"
             | "teamFieldDateUpdated"
+            | "releasePipelineFieldTeams"
             | "fieldTimeInCurrentStatus"
             | "releasePipelineFieldType"
+            | "scheduledPipelineReleaseFieldVersion"
             | "showTriageIssues"
             | "showUnreadItemsFirst"
             | "timelineChronologyShowWeekNumbers"
@@ -66537,9 +66723,11 @@ export type UpdateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "projectLayout"
             | "projectViewOrdering"
             | "projectSubGrouping"
+            | "releasePipelineGrouping"
             | "releasePipelinesViewOrdering"
             | "reviewGrouping"
             | "reviewViewOrdering"
+            | "scheduledPipelineReleasesViewGrouping"
             | "scheduledPipelineReleasesViewOrdering"
             | "searchResultType"
             | "searchViewOrdering"
@@ -66579,6 +66767,7 @@ export type UpdateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "showSupervisedIssues"
             | "fieldSla"
             | "fieldSentryIssues"
+            | "scheduledPipelineReleaseFieldCompletion"
             | "customViewFieldDateCreated"
             | "customViewFieldOwner"
             | "customViewFieldDateUpdated"
@@ -66597,6 +66786,7 @@ export type UpdateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "dashboardFieldDateCreated"
             | "dashboardFieldOwner"
             | "dashboardFieldDateUpdated"
+            | "scheduledPipelineReleaseFieldDescription"
             | "fieldDueDate"
             | "initiativeFieldHealth"
             | "initiativeFieldActivity"
@@ -66678,7 +66868,6 @@ export type UpdateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "reviewFieldIdentifier"
             | "reviewFieldPreviewLinks"
             | "reviewFieldRepository"
-            | "scheduledPipelineReleaseFieldStage"
             | "teamFieldDateCreated"
             | "teamFieldCycle"
             | "teamFieldIdentifier"
@@ -66687,8 +66876,10 @@ export type UpdateViewPreferencesMutation = { __typename?: "Mutation" } & {
             | "teamFieldOwner"
             | "teamFieldProjects"
             | "teamFieldDateUpdated"
+            | "releasePipelineFieldTeams"
             | "fieldTimeInCurrentStatus"
             | "releasePipelineFieldType"
+            | "scheduledPipelineReleaseFieldVersion"
             | "showTriageIssues"
             | "showUnreadItemsFirst"
             | "timelineChronologyShowWeekNumbers"
@@ -77615,9 +77806,11 @@ export const ViewPreferencesValuesFragmentDoc = new TypedDocumentString(
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -77657,6 +77850,7 @@ export const ViewPreferencesValuesFragmentDoc = new TypedDocumentString(
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -77675,6 +77869,7 @@ export const ViewPreferencesValuesFragmentDoc = new TypedDocumentString(
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -77756,7 +77951,6 @@ export const ViewPreferencesValuesFragmentDoc = new TypedDocumentString(
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -77765,8 +77959,10 @@ export const ViewPreferencesValuesFragmentDoc = new TypedDocumentString(
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -77843,9 +78039,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -77885,6 +78083,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -77903,6 +78102,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -77984,7 +78184,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -77993,8 +78192,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -78106,9 +78307,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -78148,6 +78351,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -78166,6 +78370,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -78247,7 +78452,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -78256,8 +78460,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -78385,9 +78591,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -78427,6 +78635,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -78445,6 +78654,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -78526,7 +78736,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -78535,8 +78744,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -87573,9 +87784,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -87615,6 +87828,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -87633,6 +87847,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -87714,7 +87929,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -87723,8 +87937,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -91546,9 +91762,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -91588,6 +91806,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -91606,6 +91825,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -91687,7 +91907,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -91696,8 +91915,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -92159,9 +92380,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -92201,6 +92424,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -92219,6 +92443,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -92300,7 +92525,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -92309,8 +92533,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -92379,9 +92605,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -92421,6 +92649,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -92439,6 +92668,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -92520,7 +92750,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -92529,8 +92758,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -92808,9 +93039,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -92850,6 +93083,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -92868,6 +93102,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -92949,7 +93184,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -92958,8 +93192,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -93028,9 +93264,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -93070,6 +93308,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -93088,6 +93327,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -93169,7 +93409,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -93178,8 +93417,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -93246,9 +93487,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -93288,6 +93531,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -93306,6 +93550,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -93387,7 +93632,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -93396,8 +93640,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -93549,9 +93795,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -93591,6 +93839,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -93609,6 +93858,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -93690,7 +93940,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -93699,8 +93948,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -121797,9 +122048,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -121839,6 +122092,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -121857,6 +122111,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -121938,7 +122193,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -121947,8 +122201,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers
@@ -122042,9 +122298,11 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   projectLayout
   projectViewOrdering
   projectSubGrouping
+  releasePipelineGrouping
   releasePipelinesViewOrdering
   reviewGrouping
   reviewViewOrdering
+  scheduledPipelineReleasesViewGrouping
   scheduledPipelineReleasesViewOrdering
   searchResultType
   searchViewOrdering
@@ -122084,6 +122342,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   showSupervisedIssues
   fieldSla
   fieldSentryIssues
+  scheduledPipelineReleaseFieldCompletion
   customViewFieldDateCreated
   customViewFieldOwner
   customViewFieldDateUpdated
@@ -122102,6 +122361,7 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   dashboardFieldDateCreated
   dashboardFieldOwner
   dashboardFieldDateUpdated
+  scheduledPipelineReleaseFieldDescription
   fieldDueDate
   initiativeFieldHealth
   initiativeFieldActivity
@@ -122183,7 +122443,6 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   reviewFieldIdentifier
   reviewFieldPreviewLinks
   reviewFieldRepository
-  scheduledPipelineReleaseFieldStage
   teamFieldDateCreated
   teamFieldCycle
   teamFieldIdentifier
@@ -122192,8 +122451,10 @@ fragment ViewPreferencesValues on ViewPreferencesValues {
   teamFieldOwner
   teamFieldProjects
   teamFieldDateUpdated
+  releasePipelineFieldTeams
   fieldTimeInCurrentStatus
   releasePipelineFieldType
+  scheduledPipelineReleaseFieldVersion
   showTriageIssues
   showUnreadItemsFirst
   timelineChronologyShowWeekNumbers

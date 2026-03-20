@@ -3842,6 +3842,22 @@
             "deprecationReason": null
           },
           {
+            "name": "initialSource",
+            "description": "The initial source of the conversation.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "ENUM",
+                "name": "AiConversationInitialSource",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "iterationId",
             "description": "The iteration ID of the conversation in agentic workflow.",
             "args": [],
@@ -5584,6 +5600,53 @@
           }
         ],
         "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "AiConversationInitialSource",
+        "description": "The initial source of an AI conversation.",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "comment",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "directChat",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "microsoftTeams",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "pullRequestComment",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "slack",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "workflow",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
         "possibleTypes": null
       },
       {
@@ -61896,6 +61959,35 @@
         "possibleTypes": null
       },
       {
+        "kind": "ENUM",
+        "name": "IssueSharingPolicy",
+        "description": "Policy controlling whether and by whom issues in a team can be shared with non-team-members.",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "adminsOnly",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "allMembers",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "disabled",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "possibleTypes": null
+      },
+      {
         "kind": "OBJECT",
         "name": "IssueSlaWebhookPayload",
         "description": "Payload for issue SLA webhook events.",
@@ -90521,6 +90613,22 @@
         "description": "An organization. Organizations are root-level objects that contain user accounts and teams.",
         "fields": [
           {
+            "name": "agentAutomationEnabled",
+            "description": "[INTERNAL] Whether the organization has enabled agent automation.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Boolean",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "aiAddonEnabled",
             "description": "[INTERNAL] Whether the organization has enabled the AI add-on (which at this point only includes triage suggestions).",
             "args": [],
@@ -91264,6 +91372,22 @@
               "ofType": {
                 "kind": "SCALAR",
                 "name": "Boolean",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "linearAgentSettings",
+            "description": "[Internal] Settings for Linear Agent features.",
+            "args": [],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "JSONObject",
                 "ofType": null
               }
             },
@@ -93667,6 +93791,29 @@
         "possibleTypes": null
       },
       {
+        "kind": "INPUT_OBJECT",
+        "name": "OrganizationLinearAgentSettingsInput",
+        "description": null,
+        "fields": null,
+        "inputFields": [
+          {
+            "name": "webSearchEnabled",
+            "description": "[Internal] Whether the organization has enabled web search for Linear Agent.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
+        "interfaces": null,
+        "enumValues": null,
+        "possibleTypes": null
+      },
+      {
         "kind": "OBJECT",
         "name": "OrganizationMeta",
         "description": null,
@@ -93978,6 +94125,18 @@
         "description": null,
         "fields": null,
         "inputFields": [
+          {
+            "name": "agentAutomationEnabled",
+            "description": "[INTERNAL] Whether the organization has enabled agent automation.",
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
           {
             "name": "aiAddonEnabled",
             "description": "[INTERNAL] Whether the organization has enabled the AI add-on.",
@@ -94320,6 +94479,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "Boolean",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "linearAgentSettings",
+            "description": "[Internal] Settings for Linear Agent features.",
+            "type": {
+              "kind": "INPUT_OBJECT",
+              "name": "OrganizationLinearAgentSettingsInput",
               "ofType": null
             },
             "defaultValue": null,
@@ -112317,6 +112488,18 @@
             "deprecationReason": null
           },
           {
+            "name": "baseSha",
+            "description": "The base SHA of the pull request.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "checks",
             "description": "[Internal] The checks associated with the pull request.",
             "args": [],
@@ -112387,6 +112570,18 @@
             "type": {
               "kind": "OBJECT",
               "name": "User",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "headSha",
+            "description": "The head SHA of the pull request.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -112618,6 +112813,18 @@
             "deprecationReason": null
           },
           {
+            "name": "presentation",
+            "description": "How the check should be opened in the client.",
+            "args": [],
+            "type": {
+              "kind": "ENUM",
+              "name": "PullRequestCheckPresentation",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "startedAt",
             "description": "The date/time at which when the check was started.",
             "args": [],
@@ -112673,6 +112880,41 @@
         "inputFields": null,
         "interfaces": [],
         "enumValues": null,
+        "possibleTypes": null
+      },
+      {
+        "kind": "ENUM",
+        "name": "PullRequestCheckPresentation",
+        "description": "[ALPHA] How a pull request check should be opened in the client.",
+        "fields": null,
+        "inputFields": null,
+        "interfaces": null,
+        "enumValues": [
+          {
+            "name": "externalOnly",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "jobLogs",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "markdown",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "runLogs",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          }
+        ],
         "possibleTypes": null
       },
       {
@@ -123579,6 +123821,136 @@
               "ofType": {
                 "kind": "SCALAR",
                 "name": "ID",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "issueCount",
+            "description": "[ALPHA] Number of issues associated with the release.",
+            "args": [
+              {
+                "name": "includeArchived",
+                "description": "Include archived issues in the count.",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                },
+                "defaultValue": "false",
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "SCALAR",
+                "name": "Int",
+                "ofType": null
+              }
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "issues",
+            "description": "[ALPHA] Issues associated with the release.",
+            "args": [
+              {
+                "name": "after",
+                "description": "A cursor to be used with first for forward pagination",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "before",
+                "description": "A cursor to be used with last for backward pagination.",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "String",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "filter",
+                "description": "Filter returned issues.",
+                "type": {
+                  "kind": "INPUT_OBJECT",
+                  "name": "IssueFilter",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "first",
+                "description": "The number of items to forward paginate (used with after). Defaults to 50.",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "includeArchived",
+                "description": "Should archived resources be included (default: false)",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Boolean",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "last",
+                "description": "The number of items to backward paginate (used with before). Defaults to 50.",
+                "type": {
+                  "kind": "SCALAR",
+                  "name": "Int",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              },
+              {
+                "name": "orderBy",
+                "description": "By which field should the pagination order by. Available options are createdAt (default) and updatedAt.",
+                "type": {
+                  "kind": "ENUM",
+                  "name": "PaginationOrderBy",
+                  "ofType": null
+                },
+                "defaultValue": null,
+                "isDeprecated": false,
+                "deprecationReason": null
+              }
+            ],
+            "type": {
+              "kind": "NON_NULL",
+              "name": null,
+              "ofType": {
+                "kind": "OBJECT",
+                "name": "IssueConnection",
                 "ofType": null
               }
             },
@@ -134985,6 +135357,18 @@
             "deprecationReason": null
           },
           {
+            "name": "issueSharingPolicy",
+            "description": "The policy controlling whether and by whom issues in the team can be shared with non-team-members.",
+            "type": {
+              "kind": "ENUM",
+              "name": "IssueSharingPolicy",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "key",
             "description": "The key of the team. If not given, the key will be generated based on the name of the team.",
             "type": {
@@ -136656,6 +137040,18 @@
             "type": {
               "kind": "SCALAR",
               "name": "String",
+              "ofType": null
+            },
+            "defaultValue": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "issueSharingPolicy",
+            "description": "The policy controlling whether and by whom issues in the team can be shared with non-team-members.",
+            "type": {
+              "kind": "ENUM",
+              "name": "IssueSharingPolicy",
               "ofType": null
             },
             "defaultValue": null,
@@ -141475,6 +141871,12 @@
         "interfaces": null,
         "enumValues": [
           {
+            "name": "agentExamplesDismissed",
+            "description": null,
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "all",
             "description": null,
             "isDeprecated": false,
@@ -145785,12 +146187,36 @@
             "deprecationReason": null
           },
           {
+            "name": "releasePipelineFieldTeams",
+            "description": "Whether to show the teams field for release pipelines.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "releasePipelineFieldType",
             "description": "Whether to show the type field for release pipelines.",
             "args": [],
             "type": {
               "kind": "SCALAR",
               "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "releasePipelineGrouping",
+            "description": "The release pipeline grouping.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
@@ -145893,6 +146319,30 @@
             "deprecationReason": null
           },
           {
+            "name": "scheduledPipelineReleaseFieldCompletion",
+            "description": "Whether to show the completion field for scheduled pipeline releases.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "scheduledPipelineReleaseFieldDescription",
+            "description": "Whether to show the description field for scheduled pipeline releases.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
             "name": "scheduledPipelineReleaseFieldReleaseDate",
             "description": "Whether to show the release date field for scheduled pipeline releases.",
             "args": [],
@@ -145905,12 +146355,24 @@
             "deprecationReason": null
           },
           {
-            "name": "scheduledPipelineReleaseFieldStage",
-            "description": "Whether to show the stage field for scheduled pipeline releases.",
+            "name": "scheduledPipelineReleaseFieldVersion",
+            "description": "Whether to show the version field for scheduled pipeline releases.",
             "args": [],
             "type": {
               "kind": "SCALAR",
               "name": "Boolean",
+              "ofType": null
+            },
+            "isDeprecated": false,
+            "deprecationReason": null
+          },
+          {
+            "name": "scheduledPipelineReleasesViewGrouping",
+            "description": "The scheduled pipeline releases view grouping.",
+            "args": [],
+            "type": {
+              "kind": "SCALAR",
+              "name": "String",
               "ofType": null
             },
             "isDeprecated": false,
